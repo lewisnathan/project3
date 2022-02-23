@@ -1,0 +1,4 @@
+$env:FLASK_APP='application.py'
+$env:FLASK_DEBUG=1
+$env:DATABASE_URL='postgresql://pqvckluucuaqmn:f8bec839f1f0c4d616ce34b78f325103eb8eebd8a706a558424d334ec22f4029@ec2-34-205-46-149.compute-1.amazonaws.com:5432/ddbulf7n7qvo4o'
+python -m flask run

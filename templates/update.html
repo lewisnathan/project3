@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<p>
+    <form action="{{ url_for('update') }}" method="post">
+        <input type="date" name="start" placeholder="Start Date">
+        <input type="date" name="end" placeholder="End Date">
+        <button>Submit</button>
+    </form>
+</p>
+<div id="map"></div>
+<script>
+    var basemap = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        //maxZoom: 18,
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'pk.eyJ1IjoidmVnZXRhYmxlaHVudGVyIiwiYSI6ImNrenB1cTM4bzBkcHQybnJ4cDFwOHUzNnQifQ.XB2HogVSioH_O6t03oTGwA'
+    });
+    var addedlayer = L.tileLayer('https://api.mapbox.com/styles/v1/vegetablehunter/ckzyyhsj400a715lwjzd1ql6h/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'pk.eyJ1IjoidmVnZXRhYmxlaHVudGVyIiwiYSI6ImNrenB1cTM4bzBkcHQybnJ4cDFwOHUzNnQifQ.XB2HogVSioH_O6t03oTGwA'
+    });
+    var permits = $.ajax({
+        url: "https://data.calgary.ca/resource/c2es-76ed.geojson?$where=issueddate >= '{{ sd }}' and issueddate <= '{{ ed }}'",
+        dataType: "json",
+        success: console.log("permit data successfully loaded."),
+        error: function (xhr) {
+            alert(xhr.statusText)
+        }
+    })
+    $.when(permits).done(function() {
+        var markers = L.geoJSON(permits.responseJSON, {
+            onEachFeature: function (feature, layer) {
+                layer.bindPopup(
+                    '<h3>Permit Number: '+feature.properties.permitnum+
+                    '</h3><p>Issued Date: '+feature.properties.issueddate.substr(0,10)+
+                    '<br>Work Class Group: '+feature.properties.workclassgroup+
+                    '<br>Contractor Name: '+feature.properties.contractorname+
+                    '<br>Community Name: '+feature.properties.communityname+
+                    '<br>Original Address: '+feature.properties.originaladdress+'</p>'                
+                );
+            }
+        }).addTo(map);
+    });
+    var map = L.map('map', {
+        center: [51.030, -114.035],
+        zoom: 11,
+        scrollWheelZoom: true,
+        tap: false,
+        layers: [basemap, addedlayer]
+    });
+    var selectlayer = {
+        "Deafult Map": basemap,
+        "Created Map": addedlayer
+    };
+    L.control.layers(selectlayer).addTo(map);
+</script>
+
+{% endblock %}
